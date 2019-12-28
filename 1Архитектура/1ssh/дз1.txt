@@ -1,0 +1,35 @@
+** ssh1 (после развертывания добавить 2й интерфейс, в системе будет как enp0s8)(enp0s3:NAT:dhcp, enp0s8:sshnet1:192.168.1.1/24)
+** ssh2 (после развертывания добавить 2й интерфейс, в системе будет как enp0s8)(enp0s3:sshne1:192.168.1.2/24, enp0s8:sshnet2:192.168.0.1/24)
+** ssh3 (enp0s3:sshnet2:192.168.0.2/24).
+
+* научиться попадать на каждую виртуалку последовательно host->ssh1->ssh2->ssh3 без ввода пароля (AgentForward).
+** научиться попадать одной командой на ssh3 без ввода пароля
+* научиться пользовать -L (LocalPortForward) для проброса локального порта на удаленную виртуалку. 
+ssh -L 9993:localhost:22 192.168.2.3
+** проброс host/20122 в ssh2/22
+ssh -L 9991:192.168.1.2:9992 172.16.2.2
+** проброс host/20222 в ssh3/22
+* научиться использовать -R (RemotePortForward) для доступа с виртуалки
+ssh -R 9999:localhost:80 user@192.16.1.1
+** проброс ssh3/8080 в ip любого внешнего http(не https) сервиса и 80 порт
+* настроить доступ на каждую из виртуалок в .ssh/config
+ 
+ Host *
+    user user
+    #ForwardAgent yes
+    ForwardAgent yes
+    ControlMaster auto
+    ControlPersist 5
+    ControlPath ~/.ssh/ssh_mux_%h_%p_%r
+Host host1
+        HostName 172.16.2.2
+        User user
+
+Host host2
+        HostName 192.168.1.2
+        User user
+        ProxyCommand ssh host1 nc %h %p
+Host host3
+        HostName 192.168.2.3
+        User user
+        ProxyCommand ssh host2 nc %h %p
