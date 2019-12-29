@@ -1,0 +1,32 @@
+Домашнее задание #2 
+* в виртуалке 'disks' выполнить следующее:
+ 1) Собрать R0 из всех дисков, сделать поверх него раздел, разобрать
+ mdadm --zero-superblock /dev/vd{b,c,d,e,f}
+ mdadm --create /dev/md0 -l 0 -n 5 /dev/vd{b,c,d,e,f}
+ mdadm -S /dev/md0
+ cat /proc/mdstat
+ mdadm --zero-superblock /dev/vd{b,c,d,e,f}
+ 2) Собрать R1 2х дисков, добвить туда еще 2, чтобы получился R1 из 4х дисков. Разобрать.
+ mdadm --create /dev/md0 -l 1 -n 2 /dev/vd{b,c}
+ mdadm -D /dev/md0
+ mdadm /dev/md0 --add /dev/vd{d,e}
+ расширяем раид т.к 2 диска помечены для горячей замены
+ mdadm --grow /dev/md0 --raid-device=4
+ watch cat /proc/mdstat
+ mdadm -D /dev/md0
+ mdstat -S /dev/md0
+ mdadm --zero-superblock /dev/vd{b,c,d,e,f}
+
+ 3) Собрать R5 из 3х дисков (должен быть размер около 1G), добавить туда 2 диска для данных --grow и один hot spare. Убедиться что все получилось - размер рейда около 2G.(команды mdadm: -G -a , --add, -D)
+  mdadm --create /dev/md0 -l 5 -n 3 /dev/vd{b,c,d}
+ mdadm /dev/md0 --add /dev/vde
+ mdadm --grow /dev/md0 --raid-device=4
+ mdadm /dev/md0 --add /dev/vdf
+ watch cat /proc/mdstat
+Шпаргалка по командам:
+ mdadm --create $dev -l $level -n $numdev
+ mdadm -D 
+ mdadm -S 
+ mdadm -G $dev -n $newnumdev -a $newdevs
+ mdadm --zero-superblock
+ 
